@@ -54,3 +54,71 @@ class SocialGraph:
             self.users[user_id] = new_name
             return True
         return False
+
+
+
+    def get_friends(self, user_id):
+        
+        if user_id not in self.users:
+            return []
+        return [
+            {"id": fid, "name": self.users[fid]}
+            for fid in self.adjacency.get(user_id, set())
+        ]
+
+    def are_connected(self, id1, id2):
+        
+        if id1 not in self.users or id2 not in self.users:
+            return False
+        return id2 in self.adjacency.get(id1, set())
+
+    def are_reachable(self, id1, id2):
+        
+        if id1 not in self.users or id2 not in self.users:
+            return False
+        if id1 == id2:
+            return True
+        
+        visited = set()
+        queue = deque([id1])
+        visited.add(id1)
+        
+        while queue:
+            current = queue.popleft()
+            if current == id2:
+                return True
+            for neighbor in self.adjacency.get(current, set()):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+        return False
+
+
+
+    def shortest_path(self, id1, id2):
+        
+        if id1 not in self.users or id2 not in self.users:
+            return []
+        if id1 == id2:
+            return [id1]
+
+        visited = {id1}
+        queue = deque([(id1, [id1])])
+
+        while queue:
+            current, path = queue.popleft()
+            for neighbor in self.adjacency.get(current, set()):
+                if neighbor == id2:
+                    return path + [neighbor]
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append((neighbor, path + [neighbor]))
+        return []
+
+    def shortest_path_with_names(self, id1, id2):
+        path_ids = self.shortest_path(id1, id2)
+        return [
+            {"id": uid, "name": self.users.get(uid, "Unknown")}
+            for uid in path_ids
+        ]
+
