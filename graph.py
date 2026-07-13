@@ -122,3 +122,65 @@ class SocialGraph:
             for uid in path_ids
         ]
 
+
+
+
+    def suggest_friends(self, user_id):
+        
+        if user_id not in self.users:
+            return []
+
+        direct_friends = self.adjacency.get(user_id, set())
+        suggestions = {}  # {candidate_id: mutual_count}
+
+        for friend_id in direct_friends:
+            for fof in self.adjacency.get(friend_id, set()):
+                if fof != user_id and fof not in direct_friends:
+                    suggestions[fof] = suggestions.get(fof, 0) + 1
+
+        
+        sorted_suggestions = sorted(
+            suggestions.items(), key=lambda x: x[1], reverse=True
+        )
+
+        return [
+            {
+                "id": sid,
+                "name": self.users[sid],
+                "mutual_friends": count,
+                "mutual_names": [
+                    self.users[f]
+                    for f in direct_friends
+                    if sid in self.adjacency.get(f, set())
+                ]
+            }
+            for sid, count in sorted_suggestions
+        ]
+
+   
+
+    def find_groups(self):
+        
+        visited = set()
+        groups = []
+
+        for user_id in self.users:
+            if user_id not in visited:
+                group = []
+                stack = [user_id]
+                while stack:
+                    current = stack.pop()
+                    if current not in visited:
+                        visited.add(current)
+                        group.append({
+                            "id": current,
+                            "name": self.users[current]
+                        })
+                        for neighbor in self.adjacency.get(current, set()):
+                            if neighbor not in visited:
+                                stack.append(neighbor)
+                groups.append(group)
+
+        
+        groups.sort(key=len, reverse=True)
+        return groups
