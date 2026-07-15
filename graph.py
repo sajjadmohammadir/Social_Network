@@ -131,7 +131,7 @@ class SocialGraph:
             return []
 
         direct_friends = self.adjacency.get(user_id, set())
-        suggestions = {}  # {candidate_id: mutual_count}
+        suggestions = {}  
 
         for friend_id in direct_friends:
             for fof in self.adjacency.get(friend_id, set()):
@@ -184,3 +184,64 @@ class SocialGraph:
         
         groups.sort(key=len, reverse=True)
         return groups
+
+
+
+
+    def users_with_most_friends(self):
+        
+        if not self.users:
+            return []
+
+        max_friends = max(len(friends) for friends in self.adjacency.values())
+
+        return [
+            {
+                "id": uid,
+                "name": self.users[uid],
+                "friend_count": len(self.adjacency[uid])
+            }
+            for uid in self.users
+            if len(self.adjacency[uid]) == max_friends
+        ]
+
+
+
+    def mutual_friends(self, id1, id2):
+
+        if id1 not in self.users or id2 not in self.users:
+            return []
+
+        mutual = self.adjacency.get(id1, set()) & self.adjacency.get(id2, set())
+        return [
+            {"id": mid, "name": self.users[mid]}
+            for mid in mutual
+        ]
+
+
+    def network_stats(self):
+
+        total_users = len(self.users)
+        total_edges = sum(len(f) for f in self.adjacency.values()) // 2
+        avg_relations = (2 * total_edges / total_users) if total_users > 0 else 0
+
+        groups = self.find_groups()
+        largest_group = groups[0] if groups else []
+
+        most_connected = None
+        max_friends = -1
+        for uid in self.users:
+            count = len(self.adjacency[uid])
+            if count > max_friends:
+                max_friends = count
+                most_connected = {"id": uid, "name": self.users[uid], "friend_count": count}
+
+        return {
+            "total_users": total_users,
+            "total_friendships": total_edges,
+            "avg_relationships": round(avg_relations, 2),
+            "largest_group": largest_group,
+            "largest_group_size": len(largest_group),
+            "most_connected_user": most_connected,
+            "num_groups": len(groups)
+        }
