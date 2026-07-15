@@ -245,3 +245,4 @@ class SocialGraph:
             "most_connected_user": most_connected,
             "num_groups": len(groups)
         }
+
