@@ -246,3 +246,39 @@ class SocialGraph:
             "num_groups": len(groups)
         }
 
+
+
+    def distances_from_user(self, user_id):
+        if user_id not in self.users:
+            return []
+
+        distances = {}
+        visited = {user_id}
+        queue = deque([(user_id, 0)])
+
+        while queue:
+            current, dist = queue.popleft()
+            distances[current] = dist
+            for neighbor in self.adjacency.get(current, set()):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append((neighbor, dist + 1))
+
+        result = []
+        for uid in self.users:
+            if uid != user_id:
+                dist = distances.get(uid, float('inf'))
+                result.append({
+                    "id": uid,
+                    "name": self.users[uid],
+                    "distance": dist if dist != float('inf') else "∞ (unreachable)"
+                })
+
+        def sort_key(item):
+            d = item["distance"]
+            if d == "∞ (unreachable)":
+                return (1, 0)
+            return (0, d)
+
+        result.sort(key=sort_key)
+        return result
