@@ -283,4 +283,58 @@ class SocialGraph:
         result.sort(key=sort_key)
         return result
 
+    def find_key_person(self):
+
+        if len(self.users) < 3:
+            return None
+
+        centrality = {uid: 0.0 for uid in self.users}
+
+        for source in self.users:
+            
+            distances = {}
+            sigma = {uid: 0 for uid in self.users}
+            predecessors = {uid: [] for uid in self.users}
+            sigma[source] = 1
+            distances[source] = 0
+            queue = deque([source])
+            order = []  # BFS order
+
+            while queue:
+                current = queue.popleft()
+                order.append(current)
+                for neighbor in self.adjacency.get(current, set()):
+                    
+                    if neighbor not in distances:
+                        distances[neighbor] = distances[current] + 1
+                        queue.append(neighbor)
+                    
+                    if distances.get(neighbor) == distances[current] + 1:
+                        sigma[neighbor] += sigma[current]
+                        predecessors[neighbor].append(current)
+
+           
+            dependency = {uid: 0.0 for uid in self.users}
+            
+           
+            for w in reversed(order):
+                for v in predecessors[w]:
+                    if sigma[w] > 0:
+                        dependency[v] += (sigma[v] / sigma[w]) * (1 + dependency[w])
+                if w != source:
+                    centrality[w] += dependency[w]
+
         
+        if len(self.users) > 2:
+            norm = 1.0 / ((len(self.users) - 1) * (len(self.users) - 2))
+            for uid in centrality:
+                centrality[uid] *= norm
+
+        
+        key_person_id = max(centrality, key=centrality.get)
+        return {
+            "id": key_person_id,
+            "name": self.users[key_person_id],
+            "centrality_score": round(centrality[key_person_id], 4),
+            "friend_count": len(self.adjacency[key_person_id])
+        }
