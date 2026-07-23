@@ -405,3 +405,93 @@ class SocialGraph:
             {"community_id": cid, "members": members, "size": len(members)}
             for cid, members in community_groups.items()
         ]
+
+
+
+    def optimal_spread(self, k):
+      
+        if not self.users:
+            return {"selected_users": [], "spread_details": []}
+
+        k = min(k, len(self.users))
+        selected = []
+        remaining = set(self.users.keys())
+
+        for _ in range(k):
+            best_user = None
+            best_new_reach = -1
+
+            for candidate in remaining:
+             
+                test_set = set(selected) | {candidate}
+                reached = self._simulate_spread(test_set)
+                new_reach = len(reached)
+                
+                if new_reach > best_new_reach:
+                    best_new_reach = new_reach
+                    best_user = candidate
+
+            if best_user:
+                selected.append(best_user)
+                remaining.discard(best_user)
+
+
+        spread_info = self._simulate_spread_detailed(selected)
+
+        return {
+            "selected_users": [
+                {"id": uid, "name": self.users[uid]} for uid in selected
+            ],
+            "total_reached": spread_info["total_reached"],
+            "rounds_needed": spread_info["rounds"],
+            "spread_details": spread_info["details"]
+        }
+
+    def _simulate_spread(self, seed_users):
+        """Simulate information spread from seed users. Time: O(V + E)"""
+        reached = set(seed_users)
+        current_layer = set(seed_users)
+        
+        while current_layer:
+            next_layer = set()
+            for user in current_layer:
+                for friend in self.adjacency.get(user, set()):
+                    if friend not in reached:
+                        reached.add(friend)
+                        next_layer.add(friend)
+            current_layer = next_layer
+        
+        return reached
+
+    def _simulate_spread_detailed(self, seed_users):
+        """Simulate spread with round-by-round details. Time: O(V + E)"""
+        reached = set(seed_users)
+        current_layer = set(seed_users)
+        details = [{"round": 0, "newly_informed": [
+            {"id": uid, "name": self.users[uid]} for uid in seed_users
+        ]}]
+        round_num = 0
+
+        while current_layer:
+            round_num += 1
+            next_layer = set()
+            for user in current_layer:
+                for friend in self.adjacency.get(user, set()):
+                    if friend not in reached:
+                        reached.add(friend)
+                        next_layer.add(friend)
+            
+            if next_layer:
+                details.append({
+                    "round": round_num,
+                    "newly_informed": [
+                        {"id": uid, "name": self.users[uid]} for uid in next_layer
+                    ]
+                })
+            current_layer = next_layer
+
+        return {
+            "total_reached": len(reached),
+            "rounds": round_num,
+            "details": details
+        }
