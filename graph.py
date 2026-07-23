@@ -338,3 +338,70 @@ class SocialGraph:
             "centrality_score": round(centrality[key_person_id], 4),
             "friend_count": len(self.adjacency[key_person_id])
         }
+
+    def detect_communities(self):
+
+        if not self.users:
+            return []
+
+
+        communities = {uid: i for i, uid in enumerate(self.users)}
+        total_edges = sum(len(f) for f in self.adjacency.values()) // 2
+        
+        if total_edges == 0:
+            return [{"community": 0, "members": [
+                {"id": uid, "name": self.users[uid]} for uid in self.users
+            ]}]
+
+        changed = True
+        iterations = 0
+        max_iterations = 100
+
+        while changed and iterations < max_iterations:
+            changed = False
+            iterations += 1
+            
+            for uid in self.users:
+                best_community = communities[uid]
+                best_gain = 0
+                
+                neighbor_communities = set()
+                for friend in self.adjacency.get(uid, set()):
+                    neighbor_communities.add(communities[friend])
+                
+                for comm in neighbor_communities:
+                    if comm == communities[uid]:
+                        continue
+                    
+                    edges_to_comm = sum(
+                        1 for f in self.adjacency.get(uid, set())
+                        if communities[f] == comm
+                    )
+                    
+                    current_comm_edges = sum(
+                        1 for f in self.adjacency.get(uid, set())
+                        if communities[f] == communities[uid]
+                    )
+                    
+                    gain = edges_to_comm - current_comm_edges
+                    if gain > best_gain:
+                        best_gain = gain
+                        best_community = comm
+                
+                if best_community != communities[uid]:
+                    communities[uid] = best_community
+                    changed = True
+
+        community_groups = {}
+        for uid, comm_id in communities.items():
+            if comm_id not in community_groups:
+                community_groups[comm_id] = []
+            community_groups[comm_id].append({
+                "id": uid,
+                "name": self.users[uid]
+            })
+
+        return [
+            {"community_id": cid, "members": members, "size": len(members)}
+            for cid, members in community_groups.items()
+        ]
