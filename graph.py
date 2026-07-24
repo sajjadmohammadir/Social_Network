@@ -448,7 +448,6 @@ class SocialGraph:
         }
 
     def _simulate_spread(self, seed_users):
-        """Simulate information spread from seed users. Time: O(V + E)"""
         reached = set(seed_users)
         current_layer = set(seed_users)
         
@@ -464,7 +463,7 @@ class SocialGraph:
         return reached
 
     def _simulate_spread_detailed(self, seed_users):
-        """Simulate spread with round-by-round details. Time: O(V + E)"""
+
         reached = set(seed_users)
         current_layer = set(seed_users)
         details = [{"round": 0, "newly_informed": [
@@ -495,3 +494,72 @@ class SocialGraph:
             "rounds": round_num,
             "details": details
         }
+
+
+    def save_to_json(self, filepath="social_network.json"):
+
+        data = {
+            "next_id": self._next_id,
+            "users": self.users,
+            "friendships": [
+                {"user1": uid, "user2": fid}
+                for uid in self.adjacency
+                for fid in self.adjacency[uid]
+                if uid < fid  
+            ]
+        }
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+    def load_from_json(self, filepath="social_network.json"):
+        if not os.path.exists(filepath):
+            return False
+        
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        self._next_id = data.get("next_id", 1)
+        self.users = data.get("users", {})
+        self.adjacency = {uid: set() for uid in self.users}
+        
+        for friendship in data.get("friendships", []):
+            u1, u2 = friendship["user1"], friendship["user2"]
+            if u1 in self.adjacency and u2 in self.adjacency:
+                self.adjacency[u1].add(u2)
+                self.adjacency[u2].add(u1)
+        
+        return True
+
+    def load_example(self):
+
+        self.users = {}
+        self.adjacency = {}
+        self._next_id = 1
+
+
+        users_data = ["امیر", "حسن", "علی", "سارا", "نیکا", "بیتا", "امید", "سعید", "مهدی"]
+        ids = []
+        for name in users_data:
+            uid = self.add_user(name)
+            ids.append(uid)
+
+
+        friendships = [
+            (0, 1),  # امیر-حسن
+            (0, 2),  # امیر-علی
+            (1, 3),  # حسن-سارا
+            (3, 4),  # سارا-نیکا
+            (3, 5),  # سارا-بیتا
+            (4, 5),  # نیکا-بیتا
+            (6, 7),  # امید-سعید
+            (6, 8),  # امید-مهدی
+        ]
+        
+        for i, j in friendships:
+            self.add_friendship(ids[i], ids[j])
+
+    def get_all_users(self):
+        return [{"id": uid, "name": name} for uid, name in self.users.items()]
+
+    def get_user_name(self, user_id):
+        return self.users.get(user_id, "Unknown")
