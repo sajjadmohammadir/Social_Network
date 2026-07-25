@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحلیل شبکه اجتماعی</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(255,255,255,0.03);
+            border-left: 1px solid rgba(255,255,255,0.08);
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .sidebar h3 {
+            color: #3a7bd5;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .user-list {
+            list-style: none;
+        }
+
+        .user-list li {
+            padding: 8px 12px;
+            margin: 3px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .user-list li:hover {
+            background: rgba(58, 123, 213, 0.2);
+        }
+
+        .user-list li.selected {
+            background: rgba(58, 123, 213, 0.3);
+            border: 1px solid #3a7bd5;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .user-actions button {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .user-actions button:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            color: #aaa;
+        }
+
+        .tab:hover {
+            background: rgba(58, 123, 213, 0.2);
+            color: #fff;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            color: #3a7bd5;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+            font-size: 0.85rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3a7bd5;
+            box-shadow: 0 0 0 2px rgba(58,123,213,0.2);
+        }
+
+        select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(58,123,213,0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: #fff;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e53935, #e35d5b);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #ccc;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        /* Results */
+        .result-box {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 50px;
+        }
+
+        .result-box h4 {
+            color: #00d2ff;
+            margin-bottom: 10px;
+        }
+
+        .result-item {
+            padding: 8px 12px;
+            margin: 4px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-left: 5px;
+        }
+
+        .badge-blue {
+            background: rgba(58,123,213,0.3);
+            color: #7cb3ff;
+        }
+
+        .badge-green {
+            background: rgba(17,153,142,0.3);
+            color: #38ef7d;
+        }
+
+        .badge-red {
+            background: rgba(229,57,53,0.3);
+            color: #ff7b7b;
+        }
+
+        .badge-purple {
+            background: rgba(156,39,176,0.3);
+            color: #ce93d8;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card .stat-label {
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        /* Graph Visualization */
+        .graph-container {
+            width: 100%;
+            height: 500px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Path visualization */
+        .path-display {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .path-node {
+            background: rgba(58,123,213,0.3);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        .path-arrow {
+            color: #3a7bd5;
+            font-size: 1.2rem;
+        }
+
+        /* Group display */
+        .group-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-right: 3px solid #3a7bd5;
+        }
+
+        .group-members {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .member-tag {
+            background: rgba(58,123,213,0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+
+        /* Distance table */
+        .distance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .distance-table th, .distance-table td {
+            padding: 10px;
+            text-align: right;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .distance-table th {
+            color: #3a7bd5;
+            font-size: 0.85rem;
+        }
+
+        .distance-table tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+
+        /* Inline form */
+        .inline-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .inline-form .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        /* Spread visualization */
+        .spread-round {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            border-right: 3px solid #38ef7d;
+        }
+
+        .spread-round .round-header {
+            color: #38ef7d;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            z-index: 1000;
+            display: none;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .toast.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* Hidden sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Flex helpers */
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .flex-1 { flex: 1; }
+
+        .mt-10 { margin-top: 10px; }
+        .mt-15 { margin-top: 15px; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🌐 تحلیل شبکه اجتماعی</h1>
+    <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="loadExample()">📥 بارگذاری نمونه</button>
+        <button class="btn btn-danger btn-sm" onclick="resetNetwork()">🗑️ پاک کردن شبکه</button>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Sidebar: User List -->
+    <div class="sidebar">
+        <h3>👥 کاربران شبکه</h3>
+        <div class="form-group mt-10">
+            <div style="display:flex;gap:5px;">
+                <input type="text" id="newUserName" placeholder="نام کاربر جدید..." onkeydown="if(event.key==='Enter')addUser()">
+                <button class="btn btn-success btn-sm" onclick="addUser()">+</button>
+            </div>
+        </div>
+        <ul class="user-list" id="userList">
+            <!-- Populated by JS -->
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="showSection('graph')">📊 نمودار</div>
+            <div class="tab" onclick="showSection('friends')">👥 دوستان</div>
+            <div class="tab" onclick="showSection('connection')">🔗 ارتباط</div>
+            <div class="tab" onclick="showSection('path')">🛤️ کوتاه‌ترین مسیر</div>
+            <div class="tab" onclick="showSection('suggest')">💡 پیشنهاد دوست</div>
+            <div class="tab" onclick="showSection('groups')">🏘️ گروه‌ها</div>
+            <div class="tab" onclick="showSection('mutual')">🤝 دوستان مشترک</div>
+            <div class="tab" onclick="showSection('stats')">📈 آمار شبکه</div>
+            <div class="tab" onclick="showSection('distances')">📏 فاصله‌ها</div>
+            <div class="tab" onclick="showSection('keyperson')">⭐ فرد کلیدی</div>
+            <div class="tab" onclick="showSection('communities')">🏘️ جوامع</div>
+            <div class="tab" onclick="showSection('spread')">📢 انتشار خبر</div>
+        </div>
+
+        <!-- Section: Graph Visualization -->
+        <div class="section active" id="section-graph">
+            <div class="card">
+                <h3>📊 نمایش گراف شبکه اجتماعی</h3>
+                <div class="graph-container">
+                    <canvas id="graphCanvas"></canvas>
+                </div>
+                <div class="mt-10">
+                    <button class="btn btn-primary btn-sm" onclick="renderGraph()">🔄 بروزرسانی نمودار</button>
+                    <span style="color:#888;margin-right:10px;font-size:0.85rem;">برای انتخاب کاربر روی گره‌ها کلیک کنید</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Friends -->
+        <div class="section" id="section-friends">
+            <div class="card">
+                <h3>👥 لیست دوستان یک کاربر</h3>
+                <div class="form-group">
+                    <label>کاربر مورد نظر:</label>
+                    <select id="friendsUser"></select>
+                </div>
+                <button class="btn btn-primary" onclick="getFriends()">نمایش دوستان</button>
+                <div class="result-box" id="friendsResult"></div>
+            </div>
+        </div>
+
+        <!-- Section: Connection Check -->
+        <div class="section" id="section-connection">
+            <div class="card">
+                <h3>🔗 بررسی ارتباط دو کاربر</h3>
+                <div class="flex-row">
+                    <div class="form-group flex-1">
+                        <label>کاربر اول:</label>
+                        <select id="connUser1"></select>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label>کاربر دوم:</label>
+                        <select id="connUser2"></select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="checkConnection()">بررسی ارتباط</button>
+                <div class="result-box" id="connectionResult"></div>
+            </div>
+        </div>
+
+        <!-- Section: Shortest Path -->
+        <div class="section" id="section-path">
+            <div class="card">
+                <h3>🛤️ کوتاه‌ترین مسیر بین دو کاربر</h3>
+                <div class="flex-row">
+                    <div class="form-group flex-1">
+                        <label>مبدأ:</label>
+                        <select id="pathUser1"></select>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label>مقصد:</label>
+                        <select id="pathUser2"></select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="findShortestPath()">پیدا کردن مسیر</button>
+                <div class="result-box" id="pathResult"></div>
+            </div>
+        </div>
+
+        <!-- Section: Friend Suggestions -->
+        <div class="section" id="section-suggest">
+            <div class="card">
+                <h3>💡 پیشنهاد دوست</h3>
+                <div class="form-group">
+                    <label>کاربر مورد نظر:</label>
+                    <select id="suggestUser"></select>
+                </div>
+                <button class="btn btn-primary" onclick="getSuggestions()">دریافت پیشنهادات</button>
+                <div class="result-box" id="suggestResult"></div>
+            </div>
+        </div>
+
+        <!-- Section: Groups -->
+        <div class="section" id="section-groups">
+            <div class="card">
+                <h3>🏘️ گروه‌های مختلف شبکه</h3>
+                <button class="btn btn-primary" onclick="getGroups()">نمایش گروه‌ها</button>
+                <div class="result-box" id="groupsResult"></div>
+            </div>
+        </div>
+
+        <!-- Section: Mutual Friends -->
+        <div class="section" id="section-mutual">
+            <div class="card">
+                <h3>🤝 دوستان مشترک دو کاربر</h3>
+                <div class="flex-row">
+                    <div class="form-group flex-1">
+                        <label>کاربر اول:</label>
+                        <select id="mutualUser1"></select>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label>کاربر دوم:</label>
+                        <select id="mutualUser2"></select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="getMutualFriends()">پیدا کردن دوستان مشترک</button>
+                <div class="result-box" id="mutualResult"></div>
+            </div>
+        </div>
+
+        <!-- Section: Network Stats -->
+        <div class="section" id="section-stats">
+            <div class="card">
+                <h3>📈 اطلاعات شبکه</h3>
+                <button class="btn btn-primary" onclick="getStats()">محاسبه آمار</button>
+                <div class="result-box" id="statsResult"></div>
+            </div>
+        </div>
+
+        <!-- Section: Distances -->
+        <div class="section" id="section-distances">
+            <div class="card">
+                <h3>📏 فاصله کاربر از تمام افراد شبکه</h3>
+                <div class="form-group">
+                    <label>کاربر مورد نظر:</label>
+                    <select id="distUser"></select>
+                </div>
+                <button class="btn btn-primary" onclick="getDistances()">محاسبه فاصله‌ها</button>
+                <div class="result-box" id="distancesResult"></div>
+            </div>
+        </div>
+
+        <!-- Section: Key Person -->
+        <div class="section" id="section-keyperson">
+            <div class="card">
+                <h3>⭐ فرد کلیدی شبکه (مرکزیت بینابینی)</h3>
+                <button class="btn btn-primary" onclick="getKeyPerson()">پیدا کردن فرد کلیدی</button>
+                <div class="result-box" id="keypersonResult"></div>
+            </div>
+        </div>
+
+        <!-- Section: Communities -->
+        <div class="section" id="section-communities">
+            <div class="card">
+                <h3>🏘️ تشخیص جوامع دوستی</h3>
+                <button class="btn btn-primary" onclick="getCommunities()">تشخیص جوامع</button>
+                <div class="result-box" id="communitiesResult"></div>
+            </div>
+        </div>
+
+        <!-- Section: Spread -->
+        <div class="section" id="section-spread">
+            <div class="card">
+                <h3>📢 بهینه‌سازی انتشار خبر</h3>
+                <div class="form-group">
+                    <label>تعداد کاربران اولیه (K):</label>
+                    <input type="number" id="spreadK" min="1" value="1">
+                </div>
+                <button class="btn btn-primary" onclick="optimizeSpread()">محاسبه بهینه</button>
+                <div class="result-box" id="spreadResult"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // =====================================================
+    // GLOBAL STATE
+    // =====================================================
+    let users = [];
+    let graphNodes = [];
+    let graphEdges = [];
+    let selectedUserId = null;
+
+    // =====================================================
+    // API HELPERS
+    // =====================================================
+    async function api(url, options = {}) {
+        const res = await fetch(url, {
+            headers: { 'Content-Type': 'application/json' },
+            ...options
+        });
+        return res.json();
+    }
+
+    function toast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // =====================================================
+    // USER MANAGEMENT
+    // =====================================================
+    async function loadUsers() {
+        users = await api('/api/users');
+        renderUserList();
+        populateSelects();
+        renderGraph();
+    }
+
+    function renderUserList() {
+        const ul = document.getElementById('userList');
+        if (users.length === 0) {
+            ul.innerHTML = '<li style="color:#666;justify-content:center;">کاربری وجود ندارد</li>';
+            return;
+        }
+        ul.innerHTML = users.map(u => `
+            <li onclick="selectUser('${u.id}')" class="${selectedUserId === u.id ? 'selected' : ''}">
+                <span>${u.name}</span>
+                <div class="user-actions">
+                    <button onclick="event.stopPropagation();editUser('${u.id}','${u.name}')" title="ویرایش">✏️</button>
+                    <button onclick="event.stopPropagation();deleteUser('${u.id}')" title="حذف">🗑️</button>
+                </div>
+            </li>
+        `).join('');
+    }
+
+    function selectUser(id) {
+        selectedUserId = selectedUserId === id ? null : id;
+        renderUserList();
+        renderGraph();
+    }
+
+    function populateSelects() {
+        const selects = ['friendsUser', 'connUser1', 'connUser2', 'pathUser1', 'pathUser2',
+                        'suggestUser', 'mutualUser1', 'mutualUser2', 'distUser'];
+        selects.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerHTML = users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+            }
+        });
+    }
+
+    async function addUser() {
+        const input = document.getElementById('newUserName');
+        const name = input.value.trim();
+        if (!name) return;
+        await api('/api/users', { method: 'POST', body: JSON.stringify({ name }) });
+        input.value = '';
+        toast('کاربر اضافه شد ✓');
+        loadUsers();
+    }
+
+    async function editUser(id, oldName) {
+        const newName = prompt('نام جدید:', oldName);
+        if (!newName || newName === oldName) return;
+        await api(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify({ name: newName }) });
+        toast('نام کاربر بروزرسانی شد ✓');
+        loadUsers();
+    }
+
+    async function deleteUser(id) {
+        if (!confirm('آیا مطمئن هستید؟')) return;
+        await api(`/api/users/${id}`, { method: 'DELETE' });
+        if (selectedUserId === id) selectedUserId = null;
+        toast('کاربر حذف شد ✓');
+        loadUsers();
+    }
+
+    async function loadExample() {
+        await api('/api/load-example', { method: 'POST' });
+        selectedUserId = null;
+        toast('شبکه نمونه بارگذاری شد ✓');
+        loadUsers();
+    }
+
+    async function resetNetwork() {
+        if (!confirm('آیا مطمئن هستید؟ تمام اطلاعات پاک خواهد شد.')) return;
+        await api('/api/reset', { method: 'POST' });
+        selectedUserId = null;
+        toast('شبکه پاک شد ✓');
+        loadUsers();
+    }
+
+    // =====================================================
+    // ANALYSIS FUNCTIONS
+    // =====================================================
+    async function getFriends() {
+        const uid = document.getElementById('friendsUser').value;
+        const data = await api(`/api/friends/${uid}`);
+        let html = `<h4>دوستان ${data.user.name} (${data.count} نفر)</h4>`;
+        if (data.friends.length === 0) {
+            html += '<div class="result-item">دوستی یافت نشد</div>';
+        } else {
+            data.friends.forEach(f => {
+                html += `<div class="result-item">👤 ${f.name} <span class="badge badge-blue">ID: ${f.id}</span></div>`;
+            });
+        }
+        document.getElementById('friendsResult').innerHTML = html;
+    }
+
+    async function checkConnection() {
+        const id1 = document.getElementById('connUser1').value;
+        const id2 = document.getElementById('connUser2').value;
+        const data = await api(`/api/connected?user1=${id1}&user2=${id2}`);
+        let html = `<h4>نتیجه بررسی ارتباط</h4>`;
+        html += `<div class="result-item">${data.user1.name} ↔ ${data.user2.name}</div>`;
+        html += `<div class="result-item">ارتباط مستقیم: ${data.directly_connected ?
+            '<span class="badge badge-green">✓ بله</span>' :
+            '<span class="badge badge-red">✗ خیر</span>'}</div>`;
+        html += `<div class="result-item">قابل دسترسی: ${data.reachable ?
+            '<span class="badge badge-green">✓ بله</span>' :
+            '<span class="badge badge-red">✗ خیر</span>'}</div>`;
+        document.getElementById('connectionResult').innerHTML = html;
+    }
+
+    async function findShortestPath() {
+        const id1 = document.getElementById('pathUser1').value;
+        const id2 = document.getElementById('pathUser2').value;
+        const data = await api(`/api/shortest-path?user1=${id1}&user2=${id2}`);
+        let html = `<h4>کوتاه‌ترین مسیر</h4>`;
+        if (data.found) {
+            html += `<div class="path-display">`;
+            data.path.forEach((node, i) => {
+                html += `<span class="path-node">${node.name}</span>`;
+                if (i < data.path.length - 1) html += `<span class="path-arrow">←</span>`;
+            });
+            html += `</div>`;
+            html += `<div class="result-item">طول مسیر: <strong>${data.length}</strong> گام</div>`;
+        } else {
+            html += `<div class="result-item"><span class="badge badge-red">مسیری یافت نشد</span></div>`;
+        }
+        document.getElementById('pathResult').innerHTML = html;
+    }
+
+    async function getSuggestions() {
+        const uid = document.getElementById('suggestUser').value;
+        const data = await api(`/api/suggest-friends/${uid}`);
+        let html = `<h4>پیشنهادات دوست برای ${data.user.name}</h4>`;
+        if (data.suggestions.length === 0) {
+            html += '<div class="result-item">پیشنهادی وجود ندارد</div>';
+        } else {
+            data.suggestions.forEach(s => {
+                html += `<div class="result-item">
+                    👤 ${s.name}
+                    <span class="badge badge-purple">${s.mutual_friends} دوست مشترک</span>
+                    <span style="color:#888;font-size:0.8rem;">(${s.mutual_names.join('، ')})</span>
+                </div>`;
+            });
+        }
+        document.getElementById('suggestResult').innerHTML = html;
+    }
+
+    async function getGroups() {
+        const data = await api('/api/groups');
+        let html = `<h4>گروه‌های شبکه (${data.count} گروه)</h4>`;
+        data.groups.forEach((group, i) => {
+            html += `<div class="group-card">
+                <strong>گروه ${i + 1}</strong>
+                <span class="badge badge-blue">${group.length} نفر</span>
+                <div class="group-members">
+                    ${group.map(m => `<span class="member-tag">${m.name}</span>`).join('')}
+                </div>
+            </div>`;
+        });
+        document.getElementById('groupsResult').innerHTML = html;
+    }
+
+    async function getMutualFriends() {
+        const id1 = document.getElementById('mutualUser1').value;
+        const id2 = document.getElementById('mutualUser2').value;
+        const data = await api(`/api/mutual-friends?user1=${id1}&user2=${id2}`);
+        let html = `<h4>دوستان مشترک ${data.user1.name} و ${data.user2.name} (${data.count} نفر)</h4>`;
+        if (data.mutual_friends.length === 0) {
+            html += '<div class="result-item">دوست مشترکی وجود ندارد</div>';
+        } else {
+            data.mutual_friends.forEach(f => {
+                html += `<div class="result-item">🤝 ${f.name}</div>`;
+            });
+        }
+        document.getElementById('mutualResult').innerHTML = html;
+    }
+
+    async function getStats() {
+        const data = await api('/api/stats');
+        let html = `
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">${data.total_users}</div>
+                    <div class="stat-label">تعداد کل کاربران</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.total_friendships}</div>
+                    <div class="stat-label">تعداد کل دوستی‌ها</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.avg_relationships}</div>
+                    <div class="stat-label">میانگین روابط به ازای هر کاربر</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.num_groups}</div>
+                    <div class="stat-label">تعداد گروه‌ها</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.largest_group_size}</div>
+                    <div class="stat-label">بزرگترین گروه دوستی</div>
+                </div>
+            </div>`;
+        
+        if (data.most_connected_user) {
+            html += `<div class="result-item mt-15">
+                👑 کاربر با بیشترین دوست: <strong>${data.most_connected_user.name}</strong>
+                <span class="badge badge-green">${data.most_connected_user.friend_count} دوست</span>
+            </div>`;
+        }
+        
+        if (data.largest_group && data.largest_group.length > 0) {
+            html += `<div class="group-card mt-10">
+                <strong>بزرگترین گروه دوستی:</strong>
+                <div class="group-members">
+                    ${data.largest_group.map(m => `<span class="member-tag">${m.name}</span>`).join('')}
+                </div>
+            </div>`;
+        }
+        
+        document.getElementById('statsResult').innerHTML = html;
+    }
+
+    async function getDistances() {
+        const uid = document.getElementById('distUser').value;
+        const data = await api(`/api/distances/${uid}`);
+        let html = `<h4>فاصله ${data.user.name} از سایر کاربران</h4>`;
+        
+        if (data.distances.length === 0) {
+            html += '<div class="result-item">کاربر دیگری وجود ندارد</div>';
+        } else {
+            html += `<table class="distance-table">
+                <tr><th>ردیف</th><th>نام کاربر</th><th>فاصله</th></tr>`;
+            data.distances.forEach((d, i) => {
+                const isInfinity = typeof d.distance === 'string';
+                html += `<tr>
+                    <td>${i + 1}</td>
+                    <td>${d.name}</td>
+                    <td>${isInfinity ?
+                        '<span class="badge badge-red">∞ (غیرقابل دسترس)</span>' :
+                        `<span class="badge badge-green">${d.distance}</span>`}</td>
+                </tr>`;
+            });
+            html += '</table>';
+        }
+        document.getElementById('distancesResult').innerHTML = html;
+    }
+
+    async function getKeyPerson() {
+        const data = await api('/api/key-person');
+        let html = `<h4>فرد کلیدی شبکه</h4>`;
+        if (data.key_person) {
+            const kp = data.key_person;
+            html += `<div class="result-item" style="background:rgba(58,123,213,0.2);border:1px solid #3a7bd5;">
+                👑 <strong>${kp.name}</strong>
+                <span class="badge badge-purple">امتیاز مرکزیت: ${kp.centrality_score}</span>
+                <span class="badge badge-blue">${kp.friend_count} دوست</span>
+            </div>`;
+            html += `<div class="result-item mt-10" style="color:#888;font-size:0.85rem;">
+                این کاربر بیشترین حضور را در کوتاه‌ترین مسیرهای بین سایر کاربران دارد.
+                حذف این فرد باعث افزایش شدید فاصله بین افراد شبکه می‌شود.
+            </div>`;
+        } else {
+            html += '<div class="result-item">شبکه برای تحلیل بسیار کوچک است</div>';
+        }
+        document.getElementById('keypersonResult').innerHTML = html;
+    }
+
+    async function getCommunities() {
+        const data = await api('/api/communities');
+        let html = `<h4>جوامع دوستی (${data.count} جامعه)</h4>`;
+        data.communities.forEach((c, i) => {
+            html += `<div class="group-card">
+                <strong>جامعه ${i + 1}</strong>
+                <span class="badge badge-blue">${c.size} نفر</span>
+                <div class="group-members">
+                    ${c.members.map(m => `<span class="member-tag">${m.name}</span>`).join('')}
+                </div>
+            </div>`;
+        });
+        document.getElementById('communitiesResult').innerHTML = html;
+    }
+
+    async function optimizeSpread() {
+        const k = parseInt(document.getElementById('spreadK').value) || 1;
+        const data = await api('/api/spread', {
+            method: 'POST',
+            body: JSON.stringify({ k })
+        });
+        let html = `<h4>بهینه‌سازی انتشار خبر</h4>`;
+        html += `<div class="result-item">
+            👥 کاربران انتخاب شده: 
+            <strong>${data.selected_users.map(u => u.name).join('، ')}</strong>
+        </div>`;
+        html += `<div class="result-item">
+            📊 تعداد افراد رسیده: <span class="badge badge-green">${data.total_reached}</span>
+        </div>`;
+        html += `<div class="result-item">
+            ⏱️ تعداد دوره‌ها: <span class="badge badge-blue">${data.rounds_needed}</span>
+        </div>`;
+        
+        html += `<h4 class="mt-15">جزئیات انتشار:</h4>`;
+        data.spread_details.forEach(round => {
+            html += `<div class="spread-round">
+                <div class="round-header">دوره ${round.round}</div>
+                <div class="group-members">
+                    ${round.newly_informed.map(u => `<span class="member-tag">${u.name}</span>`).join('')}
+                </div>
+            </div>`;
+        });
+        
+        document.getElementById('spreadResult').innerHTML = html;
+    }
+
+    // =====================================================
+    // TAB NAVIGATION
+    // =====================================================
+    function showSection(name) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(`section-${name}`).classList.add('active');
+        event.target.classList.add('active');
+        
+        if (name === 'graph') renderGraph();
+    }
+
+    // =====================================================
+    // GRAPH VISUALIZATION (Canvas)
+    // =====================================================
+    async function renderGraph() {
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+        
+        const W = canvas.width;
+        const H = canvas.height;
+        
+        // Clear
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(0, 0, W, H);
+        
+        if (users.length === 0) {
+            ctx.fillStyle = '#666';
+            ctx.font = '16px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('کاربری وجود ندارد. لطفاً کاربر اضافه کنید یا نمونه را بارگذاری کنید.', W/2, H/2);
+            return;
+        }
+        
+        // Fetch friendships for drawing edges
+        const groups = (await api('/api/groups')).groups;
+        
+        // Position nodes in a circle layout with groups clustered
+        const positions = {};
+        const centerX = W / 2;
+        const centerY = H / 2;
+        
+        if (groups.length === 1) {
+            // Single group - circular layout
+            const radius = Math.min(W, H) * 0.35;
+            users.forEach((u, i) => {
+                const angle = (2 * Math.PI * i) / users.length - Math.PI / 2;
+                positions[u.id] = {
+                    x: centerX + radius * Math.cos(angle),
+                    y: centerY + radius * Math.sin(angle)
+                };
+            });
+        } else {
+            // Multiple groups - cluster layout
+            const groupAngleStep = (2 * Math.PI) / groups.length;
+            const clusterRadius = Math.min(W, H) * 0.3;
+            
+            groups.forEach((group, gi) => {
+                const gAngle = groupAngleStep * gi - Math.PI / 2;
+                const gcx = centerX + clusterRadius * Math.cos(gAngle);
+                const gcy = centerY + clusterRadius * Math.sin(gAngle);
+                const nodeRadius = Math.min(60, 30 + group.length * 5);
+                
+                group.forEach((member, mi) => {
+                    const nAngle = (2 * Math.PI * mi) / group.length;
+                    positions[member.id] = {
+                        x: gcx + nodeRadius * Math.cos(nAngle),
+                        y: gcy + nodeRadius * Math.sin(nAngle)
+                    };
+                });
+            });
+        }
+        
+        // Draw edges
+        ctx.strokeStyle = 'rgba(58,123,213,0.3)';
+        ctx.lineWidth = 1.5;
+        
+        for (const u of users) {
+            const friends = await api(`/api/friends/${u.id}`);
+            for (const f of friends.friends) {
+                if (positions[u.id] && positions[f.id] && u.id < f.id) {
+                    ctx.beginPath();
+                    ctx.moveTo(positions[u.id].x, positions[u.id].y);
+                    ctx.lineTo(positions[f.id].x, positions[f.id].y);
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        // Draw nodes
+        users.forEach(u => {
+            const pos = positions[u.id];
+            if (!pos) return;
+            
+            const isSelected = selectedUserId === u.id;
+            const radius = isSelected ? 22 : 18;
+            
+            // Glow effect for selected
+            if (isSelected) {
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, radius + 5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(58,123,213,0.3)';
+                ctx.fill();
+            }
+            
+            // Node circle
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = isSelected ? '#3a7bd5' : 'rgba(58,123,213,0.6)';
+            ctx.fill();
+            ctx.strokeStyle = isSelected ? '#00d2ff' : 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = isSelected ? 2 : 1;
+            ctx.stroke();
+            
+            // Node label
+            ctx.fillStyle = '#fff';
+            ctx.font = isSelected ? 'bold 12px Segoe UI' : '11px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(u.name, pos.x, pos.y);
+        });
+        
+        // Store positions for click detection
+        graphNodes = users.map(u => ({ ...u, ...positions[u.id] }));
+    }
+
+    // Canvas click handler
+    document.getElementById('graphCanvas').addEventListener('click', async (e) => {
+        const rect = e.target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        for (const node of graphNodes) {
+            const dx = x - node.x;
+            const dy = y - node.y;
+            if (dx * dx + dy * dy < 400) {
+                selectUser(node.id);
+                return;
+            }
+        }
+        
+        selectedUserId = null;
+        renderUserList();
+        renderGraph();
+    });
+
+    // Resize handler
+    window.addEventListener('resize', () => renderGraph());
+
+    // =====================================================
+    // INIT
+    // =====================================================
+    loadUsers();
+</script>
+
+</body>
+</html>
+`
